@@ -1,4 +1,5 @@
 # NGS Bioinformatics Workflow
+The commands I used are listed in commands.md.
 
 ## About this project
 
