@@ -1,0 +1,19 @@
+
+# Raw sequencing data
+data/
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.sra
+
+# Generated QC reports
+QC_Reports/
+results/QC_Reports/
+*_fastqc.html
+*_fastqc.zip
+multiqc_report.html
+
+# Temporary files and logs
+*.tmp
+*.log
