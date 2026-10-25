@@ -1,19 +1,49 @@
+# Commands Used
 
-# Raw sequencing data
-data/
-*.fastq
-*.fastq.gz
-*.fq
-*.fq.gz
-*.sra
+All commands were run in Ubuntu on WSL2. Dataset: ERR5743893.
 
-# Generated QC reports
-QC_Reports/
-results/QC_Reports/
-*_fastqc.html
-*_fastqc.zip
-multiqc_report.html
+## 1. Download the data
 
-# Temporary files and logs
-*.tmp
-*.log
+```bash
+cd ~/ngs_project/data
+prefetch ERR5743893 --output-directory .
+```
+
+## 2. Convert to FASTQ
+
+```bash
+fasterq-dump ERR5743893/ERR5743893.sra \
+  --split-files \
+  --outdir .
+```
+
+## 3. Check quality with FastQC
+
+```bash
+mkdir -p ~/ngs_project/results/QC_Reports
+
+fastqc \
+  ~/ngs_project/data/ERR5743893_1.fastq \
+  ~/ngs_project/data/ERR5743893_2.fastq \
+  --outdir ~/ngs_project/results/QC_Reports
+```
+
+## 4. Combine the reports with MultiQC
+
+```bash
+multiqc ~/ngs_project/results/QC_Reports \
+  --outdir ~/ngs_project/results/QC_Reports \
+  --filename multiqc_report.html
+```
+
+## 5. Index the reference genome
+
+```bash
+cd ~/ngs_project/reference
+bwa index NC_045512.2.fasta
+samtools faidx NC_045512.2.fasta
+```
+
+## 6. Map the reads (next step, not done yet)
+
+To be added after the mapping is completed.
