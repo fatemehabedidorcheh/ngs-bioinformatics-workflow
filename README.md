@@ -1,65 +1,128 @@
-# NGS Bioinformatics Workflow
-The commands I used are listed in commands.md.
+# SARS-CoV-2 NGS Bioinformatics Workflow
 
-## About this project
+A step-by-step bioinformatics project for processing and analysing paired-end Illumina sequencing data from SARS-CoV-2 using Linux command-line tools.
 
-This is my learning project for next-generation sequencing (NGS) data analysis. I use Linux on Windows (WSL2) and public sequencing data.
+The project demonstrates a reproducible workflow from public sequencing data acquisition and quality control to reference alignment and downstream variant analysis.
 
-The dataset is ERR5743893. It is SARS-CoV-2 (the COVID-19 virus) sequencing data from an Illumina NovaSeq 6000 machine. The virus genome was amplified by PCR before sequencing (amplicon sequencing).
+## Project objectives
 
-## Tools
+- Retrieve publicly available sequencing data.
+- Assess read quality using FastQC and MultiQC.
+- Document sequencing metadata and quality-control findings.
+- Align reads to the SARS-CoV-2 reference genome.
+- Process and evaluate alignment files using SAMtools.
+- Assess genome coverage before proceeding to variant calling.
+- Identify and interpret sequence variants in subsequent workflow stages.
 
-- SRA Toolkit: download data
-- FastQC and MultiQC: check data quality
-- BWA: map reads to the reference genome
-- SAMtools: process and check the mapping
-- Reference genome: NC_045512.2 (SARS-CoV-2)
+## Dataset
 
-## What I have done
+| Field | Information |
+|---|---|
+| Accession | ERR5743893 |
+| Organism | SARS-CoV-2 |
+| Sample source | Viral RNA |
+| Library strategy | Amplicon sequencing |
+| Library selection | PCR |
+| Sequencing platform | Illumina NovaSeq 6000 |
+| Read layout | Paired-end |
+| Reference genome | NC_045512.2, SARS-CoV-2 Wuhan-Hu-1 |
 
-### 1. Downloaded the data
+The dataset metadata are stored in `reports/ERR5743893_metadata.tsv`.
 
-I downloaded the dataset from the Sequence Read Archive (SRA).
+## Workflow
 
-### 2. Converted it to FASTQ
+### 1. Environment and tool setup
 
-I converted the SRA file into FASTQ files. The data are paired-end, so there is a Read 1 file and a Read 2 file. Each contains 198,314 reads.
+The workflow is being developed in Ubuntu using WSL2 on Windows, with a Conda environment for bioinformatics tools.
 
-### 3. Checked the quality
+Tools used include:
 
-I ran FastQC on both files and combined the results with MultiQC.
+- SRA Toolkit for data retrieval and FASTQ conversion
+- FastQC for read-quality assessment
+- MultiQC for summarising quality-control reports
+- BWA for sequence alignment
+- SAMtools for alignment processing and statistics
+- BCFtools and FreeBayes for planned downstream variant analysis
 
-- The sequencing quality is very high.
-- No adapter sequences were found.
-- Duplication is very high (about 95%), and the GC content and base composition show warnings.
+### 2. Data acquisition and quality control
 
-These warnings are normal for amplicon data, because PCR makes many copies of the same pieces. They do not mean the run failed. For this reason I will not remove duplicates.
+The sequencing data were retrieved from the public SRA archive and converted into FASTQ files.
 
-### 4. Checked the sample information
+FastQC was used to assess read quality, read length, GC content, duplication and adapter content. MultiQC was used to combine the quality-control results into a single report.
 
-From the ENA database: organism SARS-CoV-2, library type amplicon, source viral RNA, paired-end reads.
+Reports are stored in `results/QC_Reports/`.
 
-### 5. Got the reference genome
+### 3. Reference preparation
 
-I downloaded the SARS-CoV-2 reference genome (NC_045512.2) and installed BWA.
+The SARS-CoV-2 reference genome, `NC_045512.2.fasta`, was downloaded and indexed for alignment.
 
-## Next step: mapping
+Reference files are stored in `reference/`.
 
-Mapping finds where each read fits on the reference genome. The plan is:
+### 4. Read alignment
 
-1. Index the reference genome.
-2. Map the reads with BWA.
-3. Convert the result to a sorted BAM file.
-4. Check how many reads mapped and how well the genome is covered.
+Paired-end reads were aligned to the reference genome using BWA-MEM.
 
-## Notes on data
+The SAM alignment was converted to BAM, sorted and indexed using SAMtools.
 
-Large data files are kept on my computer only and are not uploaded to GitHub.
+Main alignment files are stored in `results/alignment/`.
 
-## Status
+### 5. Preliminary alignment statistics
 
-Done: download, FASTQ conversion, quality control, sample information, reference genome.
+Initial SAMtools statistics showed:
 
-Next: indexing the reference and mapping the reads.
+| Metric | Result |
+|---|---:|
+| Primary alignment records | 396,628 |
+| Primary mapped records | 316,006 |
+| Primary mapping percentage | 79.67% |
+| Properly paired reads | 77.93% |
+| Average read length | 176 bp |
+| Average base quality | Q35.5 |
+| Reported mismatch rate | 0.52% |
 
-I will update this page as I complete each step.
+These are preliminary alignment metrics. Mapping percentage and mismatch rate must be interpreted in the context of the amplicon library, reference genome and coverage distribution.
+
+### 6. Genome coverage and variant analysis
+
+**Status: In progress**
+
+The next steps are to evaluate reference-genome coverage, investigate uncovered regions and assess whether the alignment is suitable for downstream variant calling. Variant identification and interpretation will be documented after these analyses are completed.
+
+## Repository structure
+
+```text
+ngs-bioinformatics-workflow/
+├── README.md
+├── .gitignore
+├── data/
+├── reference/
+├── results/
+│   ├── QC_Reports/
+│   └── alignment/
+├── reports/
+├── commands/
+└── docs/
+```
+
+Large sequencing files and generated alignment files are kept out of version control where appropriate. The repository focuses on documentation, commands, analysis summaries and reproducible workflow development.
+
+## Reproducibility
+
+Commands and analysis decisions are documented as the workflow progresses. Tool versions, dataset metadata, reference accession and quality-control findings are recorded to support reproducibility.
+
+## Limitations
+
+This is an educational bioinformatics project using a public sequencing dataset. Alignment statistics alone do not establish variant accuracy. Coverage assessment, variant quality evaluation and appropriate biological interpretation are required before drawing conclusions.
+
+## Project status
+
+- [x] Data acquisition and FASTQ conversion
+- [x] FastQC and MultiQC quality assessment
+- [x] Dataset metadata documentation
+- [x] Reference genome preparation
+- [x] BWA-MEM read alignment
+- [x] BAM conversion, sorting and indexing
+- [x] Initial alignment statistics
+- [ ] Genome coverage assessment
+- [ ] Variant calling and quality assessment
+- [ ] Variant interpretation and final report
