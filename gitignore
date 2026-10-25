@@ -47,3 +47,36 @@ samtools faidx NC_045512.2.fasta
 ## 6. Map the reads (next step, not done yet)
 
 To be added after the mapping is completed.
+
+
+
+
+# Raw sequencing data
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.sra
+
+# Alignment files
+*.sam
+*.bam
+*.bai
+*.cram
+*.crai
+
+# BWA reference index files
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa
+
+# FastQC compressed reports
+*_fastqc.zip
+
+# Temporary and intermediate files
+*.tmp
+*.log
+__pycache__/
+.ipynb_checkpoints/
