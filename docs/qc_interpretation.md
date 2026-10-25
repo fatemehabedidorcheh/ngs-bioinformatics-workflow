@@ -1,45 +1,64 @@
-# FastQC Interpretation Notes
+# Quality Control Report: SARS-CoV-2 Amplicon Sequencing
 
 ## Dataset
 
-- Accession: ERR5743893
-- Read reviewed in detail: Read 1 (ERR5743893_1.fastq)
-- QC tool: FastQC 0.12.1
+- **SRA accession:** ERR5743893
+- **Organism:** SARS-CoV-2
+- **Library strategy:** Amplicon sequencing
+- **Sequencing platform:** Illumina NovaSeq 6000
+- **Read layout:** Paired-end
 
-## Initial Results
+## Tools
 
-| Metric | Result | Comment |
-|---|---|---|
-| Per-base sequence quality | PASS | Average quality about Q34 to Q36 across much of the read |
-| Per-base sequence content | WARN | Base composition is uneven along the read |
-| Per-sequence GC content | FAIL | GC distribution is unusual |
-| Sequence length distribution | WARN | Reads have variable lengths |
-| Sequence duplication levels | FAIL | Deduplicated percentage about 4.73% |
-| Overrepresented sequences | FAIL | Some sequences occur far more often than expected |
-| Adapter content | PASS | No adapters detected in the categories FastQC checks |
+- **FastQC:** Assesses the quality and characteristics of sequencing reads.
+- **MultiQC:** Combines quality-control reports into a single summary report.
 
-Note: Q30 means about a 1 in 1,000 chance that a base is wrong, so Q34 to Q36 is very good. A deduplicated percentage of 4.73% means only about 5% of the reads are unique sequences, so most reads are copies of others.
+## Observed results
 
-## What Each Result May Mean
+The paired-end FASTQ files each contained 198,314 reads.
 
-Note:
-- **Per-base sequence content (WARN):** In a random library, A, C, G and T should be roughly balanced along the read. Uneven composition can come from library preparation bias, low sequence diversity, or a targeted sample. It is not always a sequencing error.
-- **Per-sequence GC content (FAIL):** A clean single-species genome usually gives one smooth, bell-shaped peak. An odd or multi-peaked curve can mean mixed organisms or contamination, but it can also be a natural feature of the genome or library type. FastQC compares against a theoretical curve, so it can fail even for good data.
-- **Sequence length distribution (WARN):** Variable lengths often mean the reads were trimmed before upload. This is not necessarily a problem.
-- **Sequence duplication (FAIL) and overrepresented sequences (FAIL):** These can come from PCR over-amplification, very low-complexity input, or targeted sequencing such as amplicons, where identical reads are expected. They are also seen with very small genomes sequenced at high depth. Which cause applies depends on the sample, which I have not yet identified.
-- **Adapter content (PASS):** A good sign that adapter sequences are not heavily present in the reads.
+| Metric | Read 1 | Read 2 |
+|---|---:|---:|
+| Average sequence quality | Approximately Q35–36 | Approximately Q33–36 |
+| GC content | Approximately 39% | Approximately 39% |
+| Sequence length range | 20–221 bp | 20–201 bp |
+| Duplicate sequences | 95.3% | 94.1% |
+| Overrepresented sequences | 87.6% | 85.8% |
+
+These values were recorded from the FastQC/MultiQC results and should be interpreted in the context of the library preparation method.
 
 ## Interpretation
 
-High base-call quality does not guarantee that every other QC metric will pass. GC content, duplication and overrepresented sequences can be affected by the biology of the sample, library preparation, amplification, or technical factors.
+### Read quality
 
-These observations alone do not show contamination and do not prove that the data are unsuitable for analysis. The sample type, organism and library preparation must be considered before deciding whether preprocessing is needed.
+The reported average base qualities were high. However, average quality alone does not establish that every base or read is reliable.
 
-Note: PASS, WARN and FAIL are guidelines, not verdicts. FastQC was designed with standard whole-genome libraries in mind, so other library types (such as amplicon or viral sequencing) often trigger warnings that are normal for them.
+### Read length
 
-## Remaining Work
+The reads had variable lengths, ranging from 20 bp to 221 bp for Read 1 and 20 bp to 201 bp for Read 2.
 
-- Review Read 2 in detail.
-- Generate and inspect the MultiQC summary.
-- Investigate the unusual QC metrics in the context of the dataset, starting with the SRA metadata (organism and library strategy).
-- Document any preprocessing decision and compare QC results before and after preprocessing.
+### GC content and sequence composition
+
+The reported GC content was approximately 39%. Sequence-composition warnings should be considered alongside the expected characteristics of the viral amplicon library.
+
+### Duplication and overrepresented sequences
+
+FastQC reported high duplication and a high proportion of overrepresented sequences. These findings require careful interpretation because amplicon sequencing uses PCR to enrich specific target regions, which can naturally produce repeated sequences.
+
+High duplication alone does not prove contamination, and reads should not be removed solely because they are duplicates.
+
+### Adapter content
+
+The adapter-content module was reported as passing. This indicates that adapter contamination was not flagged as a major issue by this FastQC module.
+
+## Conclusion
+
+The initial quality-control results indicate high average base quality, alongside substantial sequence duplication and overrepresentation. These findings must be evaluated in the context of the amplicon-based library.
+
+Quality control was followed by alignment to the SARS-CoV-2 reference genome NC_045512.2. Mapping statistics and genome coverage are needed to further assess the data before variant calling.
+
+## Output files
+
+- `results/QC_Reports/ERR5743893_1_fastqc.html`
+- `results/QC_Reports/ERR5743893_2_fastqc.html`
+- `results/QC_Reports/multiqc_report.html`
