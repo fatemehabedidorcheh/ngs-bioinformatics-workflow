@@ -1,101 +1,64 @@
 # NGS Bioinformatics Workflow
 
-## Project Overview
+## About this project
 
-This is a hands-on bioinformatics project focused on learning and implementing a next-generation sequencing (NGS) workflow using public sequencing data. The project uses Linux through Windows Subsystem for Linux (WSL2) and command-line bioinformatics tools.
+This is my learning project for next-generation sequencing (NGS) data analysis. I use Linux on Windows (WSL2) and public sequencing data.
 
-The dataset used is **ERR5743893**, a paired-end SARS-CoV-2 amplicon sequencing dataset from the Illumina NovaSeq 6000 platform.
+The dataset is ERR5743893. It is SARS-CoV-2 (the COVID-19 virus) sequencing data from an Illumina NovaSeq 6000 machine. The virus genome was amplified by PCR before sequencing (amplicon sequencing).
 
-## Project Objectives
+## Tools
 
-- Retrieve public sequencing data from the Sequence Read Archive (SRA).
-- Convert SRA data into FASTQ files.
-- Assess sequencing quality using FastQC.
-- Combine and interpret quality-control results using MultiQC.
-- Retrieve and prepare a reference genome for read alignment.
-- Progress toward alignment, mapping-quality assessment, and downstream sequence analysis.
+- SRA Toolkit: download data
+- FastQC and MultiQC: check data quality
+- BWA: map reads to the reference genome
+- SAMtools: process and check the mapping
+- Reference genome: NC_045512.2 (SARS-CoV-2)
 
-## Tools and Technologies
+## What I have done
 
-- **Operating system:** Ubuntu Linux through WSL2
-- **SRA Toolkit:** `prefetch`, `fasterq-dump`
-- **Quality control:** FastQC, MultiQC
-- **Read alignment:** BWA
-- **Reference genome:** NCBI accession NC_045512.2
-- **Additional tools available in the environment:** SAMtools, BCFtools, FreeBayes
+### 1. Downloaded the data
 
-## Workflow and Progress
+I downloaded the dataset from the Sequence Read Archive (SRA).
 
-### 1. Data Acquisition
+### 2. Converted it to FASTQ
 
-Retrieved public sequencing data with SRA accession `ERR5743893` using the SRA Toolkit.
+I converted the SRA file into FASTQ files. The data are paired-end, so there is a Read 1 file and a Read 2 file. Each contains 198,314 reads.
 
-### 2. SRA to FASTQ Conversion
+### 3. Checked the quality
 
-Converted the SRA file into FASTQ format using `fasterq-dump` with the `--split-files` option. Paired-end reads were saved as separate Read 1 and Read 2 files.
+I ran FastQC on both files and combined the results with MultiQC.
 
-### 3. Quality Control with FastQC
+- The sequencing quality is very high.
+- No adapter sequences were found.
+- Duplication is very high (about 95%), and the GC content and base composition show warnings.
 
-Ran FastQC on both FASTQ files and generated individual HTML reports and ZIP files.
+These warnings are normal for amplicon data, because PCR makes many copies of the same pieces. They do not mean the run failed. For this reason I will not remove duplicates.
 
-Initial findings included:
+### 4. Checked the sample information
 
-- High per-base sequence quality in both read files.
-- Warnings or failures for sequence composition, GC distribution, duplication, and overrepresented sequences.
-- Adapter-content checks passed for the adapter categories assessed.
+From the ENA database: organism SARS-CoV-2, library type amplicon, source viral RNA, paired-end reads.
 
-These findings require interpretation in the context of the confirmed amplicon library type.
+### 5. Got the reference genome
 
-### 4. Combined Quality Control with MultiQC
+I downloaded the SARS-CoV-2 reference genome (NC_045512.2) and installed BWA.
 
-Generated a combined report named `multiqc_report.html` using MultiQC. The report includes the results from both FastQC files.
+## Next step: mapping
 
-The report was generated successfully and is stored locally in `results/QC_Reports/`.
+Mapping finds where each read fits on the reference genome. The plan is:
 
-### 5. Dataset Metadata
+1. Index the reference genome.
+2. Map the reads with BWA.
+3. Convert the result to a sorted BAM file.
+4. Check how many reads mapped and how well the genome is covered.
 
-Retrieved run metadata from the European Nucleotide Archive (ENA).
+## Notes on data
 
-- **Run accession:** ERR5743893
-- **Organism:** Severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2)
-- **Library strategy:** AMPLICON
-- **Library source:** VIRAL RNA
-- **Library selection:** PCR
-- **Library layout:** PAIRED
-- **Sequencing platform:** Illumina
-- **Instrument:** Illumina NovaSeq 6000
+Large data files are kept on my computer only and are not uploaded to GitHub.
 
-The metadata was saved locally as `reports/ERR5743893_metadata.tsv`.
+## Status
 
-### 6. Reference Genome Preparation
+Done: download, FASTQ conversion, quality control, sample information, reference genome.
 
-Downloaded the SARS-CoV-2 Wuhan-Hu-1 reference genome, accession `NC_045512.2`, in FASTA format.
+Next: indexing the reference and mapping the reads.
 
-The reference file is stored locally as `reference/NC_045512.2.fasta`.
-
-Installed BWA version 0.7.17 to prepare for read alignment. Reference indexing and alignment are the next planned steps and have not yet been confirmed as completed.
-
-## Data Management
-
-Raw sequencing files and generated quality-control reports are retained locally and excluded from version control using `.gitignore`. This avoids uploading large data files and generated reports to the repository.
-
-## Skills Practiced
-
-- Linux command-line operations
-- Working with public NGS datasets
-- SRA data retrieval and FASTQ conversion
-- Sequencing quality assessment and report interpretation
-- Metadata retrieval and interpretation
-- Reference genome preparation
-- Use of bioinformatics command-line tools
-- Reproducible workflow documentation
-
-## Project Status
-
-**Completed:** SRA retrieval, FASTQ conversion, FastQC analysis of both reads, MultiQC report generation, dataset metadata retrieval, reference genome download, and BWA installation.
-
-**In progress:** Reference indexing and preparation for read alignment.
-
-**Planned:** Read alignment, mapping-quality assessment, and appropriate downstream sequence analysis.
-
-This project is ongoing, and the repository will be updated as additional workflow stages are completed.
+I will update this page as I complete each step.
