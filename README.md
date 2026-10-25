@@ -1,138 +1,101 @@
-# NGS Quality Control Workflow
+# NGS Bioinformatics Workflow
 
-## Overview
+## Project Overview
 
-This project covers the first steps of a next-generation sequencing (NGS) analysis. I use Linux on Windows (WSL2) to download public sequencing data, check its quality, and learn how to read the results before any downstream analysis.
+This is a hands-on bioinformatics project focused on learning and implementing a next-generation sequencing (NGS) workflow using public sequencing data. The project uses Linux through Windows Subsystem for Linux (WSL2) and command-line bioinformatics tools.
 
-Dataset: ERR5743893 (public data from the Sequence Read Archive, SRA).
+The dataset used is **ERR5743893**, a paired-end SARS-CoV-2 amplicon sequencing dataset from the Illumina NovaSeq 6000 platform.
 
-Note: Before drawing any biological conclusion, you must know whether the sequencing data are reliable. Quality control (QC) answers that question.
+## Project Objectives
 
-## Objectives
+- Retrieve public sequencing data from the Sequence Read Archive (SRA).
+- Convert SRA data into FASTQ files.
+- Assess sequencing quality using FastQC.
+- Combine and interpret quality-control results using MultiQC.
+- Retrieve and prepare a reference genome for read alignment.
+- Progress toward alignment, mapping-quality assessment, and downstream sequence analysis.
 
-- Download sequencing data from the SRA.
-- Convert it to FASTQ format.
-- Check read quality with FastQC.
-- Interpret the QC results.
-- Combine reports with MultiQC.
-- Prepare for alignment and downstream analysis.
+## Tools and Technologies
 
-## Tools
+- **Operating system:** Ubuntu Linux through WSL2
+- **SRA Toolkit:** `prefetch`, `fasterq-dump`
+- **Quality control:** FastQC, MultiQC
+- **Read alignment:** BWA
+- **Reference genome:** NCBI accession NC_045512.2
+- **Additional tools available in the environment:** SAMtools, BCFtools, FreeBayes
 
-| Tool | Purpose |
-|---|---|
-| Ubuntu on WSL2 | Linux command-line environment |
-| SRA Toolkit | Download and convert sequencing data |
-| FastQC | Check read quality |
-| MultiQC | Combine QC reports (planned) |
-| BWA | Align reads to a reference genome (planned) |
-| SAMtools | Process alignments and statistics (planned) |
-| BCFtools, FreeBayes | Possible variant calling (available) |
+## Workflow and Progress
 
-## Workflow
+### 1. Data Acquisition
 
-### 1. Download the data
+Retrieved public sequencing data with SRA accession `ERR5743893` using the SRA Toolkit.
 
-```bash
-cd ~/ngs_project/data
-prefetch ERR5743893 --output-directory .
-```
+### 2. SRA to FASTQ Conversion
 
-Learned: how to download public sequencing data and organise project folders.
+Converted the SRA file into FASTQ format using `fasterq-dump` with the `--split-files` option. Paired-end reads were saved as separate Read 1 and Read 2 files.
 
-Note: The SRA is a public archive of raw sequencing data. The file is downloaded in a compressed SRA format that most tools cannot read yet. ERR5743893 is the ID of this sequencing run.
+### 3. Quality Control with FastQC
 
-### 2. Convert SRA to FASTQ
+Ran FastQC on both FASTQ files and generated individual HTML reports and ZIP files.
 
-```bash
-fasterq-dump ERR5743893/ERR5743893.sra \
-  --split-files \
-  --outdir .
-```
+Initial findings included:
 
-Result: 198,733 spots read and 397,047 reads written.
+- High per-base sequence quality in both read files.
+- Warnings or failures for sequence composition, GC distribution, duplication, and overrepresented sequences.
+- Adapter-content checks passed for the adapter categories assessed.
 
-Output files: ERR5743893_1.fastq, ERR5743893_2.fastq and ERR5743893.fastq. The first two are the paired-end reads (Read 1 and Read 2). The third file has not been checked yet.
+These findings require interpretation in the context of the confirmed amplicon library type.
 
-Learned: how SRA data become FASTQ files and how command options change the output.
+### 4. Combined Quality Control with MultiQC
 
-Note:
-- FASTQ is the standard format for raw reads. Each read has its sequence and a quality score for every base.
-- Paired-end sequencing reads each DNA fragment from both ends, giving one file per end.
-- A spot is one sequenced cluster, which should give 2 reads. So 198,733 spots would give about 397,466 reads. The result (397,047) is slightly lower, so the third file may contain reads without a mate. This is a hypothesis I still need to check.
+Generated a combined report named `multiqc_report.html` using MultiQC. The report includes the results from both FastQC files.
 
-### 3. Run FastQC
+The report was generated successfully and is stored locally in `results/QC_Reports/`.
 
-```bash
-mkdir -p ~/ngs_project/results/QC_Reports
+### 5. Dataset Metadata
 
-fastqc \
-  ~/ngs_project/data/ERR5743893_1.fastq \
-  ~/ngs_project/data/ERR5743893_2.fastq \
-  --outdir ~/ngs_project/results/QC_Reports
-```
+Retrieved run metadata from the European Nucleotide Archive (ENA).
 
-Output: one HTML report and one ZIP file per FASTQ file.
+- **Run accession:** ERR5743893
+- **Organism:** Severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2)
+- **Library strategy:** AMPLICON
+- **Library source:** VIRAL RNA
+- **Library selection:** PCR
+- **Library layout:** PAIRED
+- **Sequencing platform:** Illumina
+- **Instrument:** Illumina NovaSeq 6000
 
-Learned: how to run a QC tool and find its results.
+The metadata was saved locally as `reports/ERR5743893_metadata.tsv`.
 
-Note: FastQC does not change the data. It only measures quality, GC content, duplication and adapters, and labels each as PASS, WARN or FAIL. Read 1 and Read 2 are analysed separately and can differ.
+### 6. Reference Genome Preparation
 
-### 4. First look at the QC results
+Downloaded the SARS-CoV-2 Wuhan-Hu-1 reference genome, accession `NC_045512.2`, in FASTA format.
 
-I reviewed Read 1 (ERR5743893_1.fastq) first:
+The reference file is stored locally as `reference/NC_045512.2.fasta`.
 
-- Per-base quality: high, about Q34 to Q36 across most of the read.
-- Per-base sequence composition: WARN.
-- Per-sequence GC content: unusual distribution.
-- Duplication and overrepresented sequences: high.
-- Sequence length distribution: WARN (variable lengths).
-- Adapter content: PASS.
-
-A WARN or FAIL does not automatically mean contamination or bad data. The results must be read in light of the organism and library type.
-
-Still to do: detailed review of Read 2 and the MultiQC report.
-
-Learned: each QC metric measures a different property, so results need interpretation, not just PASS/WARN/FAIL labels.
-
-Note:
-- Q30 means about a 1 in 1,000 chance that a base is wrong, so Q34 to Q36 is very good.
-- A composition warning can come from library preparation bias or low sequence diversity. It is not always a sequencing error.
-- A clean single-species sample usually gives one bell-shaped GC peak. Odd or multiple peaks can mean mixed organisms or contamination, but can also be a natural feature of the genome or library.
-- High duplication can come from PCR over-amplification, low-complexity input, or targeted sequencing (such as amplicons), where identical reads are expected. I cannot tell which applies until I identify the sample.
-- Variable read lengths often mean the reads were trimmed before upload.
-- Adapter PASS means adapter sequences are not heavily present.
-
-## Status
-
-Completed:
-- Downloaded the data with SRA Toolkit.
-- Converted it to FASTQ.
-- Ran FastQC on both read files.
-- Started interpreting Read 1.
-
-Next steps:
-- Review the Read 2 report.
-- Generate and review a MultiQC report.
-- Investigate GC content, duplication and overrepresented sequences.
-- Decide whether trimming or filtering is needed.
-- Identify the organism, reference genome and biological question.
-- If appropriate, align the reads and check mapping statistics.
-
-Note: The most important next step is finding out what the sample is. Without the organism and library type, I cannot tell whether the unusual QC results are real problems or normal features. I will check the SRA metadata.
+Installed BWA version 0.7.17 to prepare for read alignment. Reference indexing and alignment are the next planned steps and have not yet been confirmed as completed.
 
 ## Data Management
 
-Raw data and QC reports are stored locally and excluded from version control. This repository documents the commands, results and interpretation.
+Raw sequencing files and generated quality-control reports are retained locally and excluded from version control using `.gitignore`. This avoids uploading large data files and generated reports to the repository.
 
-## Skills Practised
+## Skills Practiced
 
-- Linux command line and file management.
-- Retrieving public sequencing data.
-- Working with SRA and FASTQ formats.
-- Running bioinformatics tools.
-- Assessing paired-end read quality.
-- Interpreting QC metrics.
-- Documenting a reproducible workflow.
+- Linux command-line operations
+- Working with public NGS datasets
+- SRA data retrieval and FASTQ conversion
+- Sequencing quality assessment and report interpretation
+- Metadata retrieval and interpretation
+- Reference genome preparation
+- Use of bioinformatics command-line tools
+- Reproducible workflow documentation
 
-This project is a work in progress and will be updated as the analysis develops.
+## Project Status
+
+**Completed:** SRA retrieval, FASTQ conversion, FastQC analysis of both reads, MultiQC report generation, dataset metadata retrieval, reference genome download, and BWA installation.
+
+**In progress:** Reference indexing and preparation for read alignment.
+
+**Planned:** Read alignment, mapping-quality assessment, and appropriate downstream sequence analysis.
+
+This project is ongoing, and the repository will be updated as additional workflow stages are completed.
