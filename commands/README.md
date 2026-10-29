@@ -125,9 +125,71 @@ After evaluating genome coverage, the workflow will proceed to variant calling a
 
 These steps are planned and should not be considered completed until their commands have been run and their outputs reviewed.
 
-## Notes
+## 11. Viral Genome Analysis with Nextflow and Docker
 
-- Run commands in the Ubuntu terminal, not Windows PowerShell.
-- File paths assume the project is located at `~/ngs_project`.
-- Keep raw FASTQ files and large intermediate SAM/BAM files out of GitHub unless there is a specific reason to share them.
-- Record tool versions and important analysis decisions to support reproducibility.
+In addition to the manual alignment workflow described above, a separate training workflow was prepared using `nf-core/viralrecon` to analyse five paired-end SARS-CoV-2 sequencing samples.
+
+This workflow is maintained separately from the manual analysis in `~/ngs_project`.
+
+### 11.1 Environment and tools
+
+The workflow was configured in Ubuntu 22.04.5 LTS running under WSL2 on Windows.
+
+The tools have different roles:
+
+- **Conda:** manages the software environment containing Nextflow.
+- **Nextflow:** manages pipeline execution and the order of analysis steps.
+- **Docker:** provides containerised software environments for pipeline tasks.
+- **nf-core/viralrecon:** performs the configured viral genome analysis.
+
+Activate the Nextflow environment and check the installed version:
+
+```bash
+conda activate nextflow
+nextflow -version
+```
+
+The installed Nextflow version was `26.10.4`.
+
+### 11.2 Input data and sample sheet
+
+The project directory is:
+
+```text
+~/viralrecon_training
+```
+
+The input FASTQ files are stored in:
+
+```text
+~/viralrecon_training/data/
+```
+
+The sample sheet is `samplesheet.csv`. It contains the columns `sample`, `fastq_1`, and `fastq_2`, with five sample entries and paired-end FASTQ paths.
+
+Inspect the files:
+
+```bash
+cd ~/viralrecon_training
+ls -lh samplesheet.csv
+ls -lh data/
+```
+
+The sample sheet and all ten FASTQ file paths were checked using Python. All paths were reported as existing.
+
+### 11.3 Pipeline configuration
+
+The pipeline was configured with the following options:
+
+| Parameter | Description |
+|---|---|
+| `-r 2.6.0` | Selects viralrecon pipeline version 2.6.0 |
+| `-profile docker` | Configures Docker-based execution |
+| `--input samplesheet.csv` | Specifies the sample sheet |
+| `--outdir results/viralrecon` | Specifies the output directory |
+| `--max_memory '6.GB'` | Sets the pipeline memory limit |
+| `--max_cpus 4` | Sets the configured CPU limit |
+| `--protocol amplicon` | Selects the amplicon protocol |
+| `--genome 'MN908947.3'` | Specifies the SARS-CoV-2 reference genome |
+| `--primer_set artic` | Selects the ARTIC primer scheme |
+| `--primer_set_version 3` | Specifies
